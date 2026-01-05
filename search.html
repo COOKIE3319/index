@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParseHikari | SEARCH</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="floating-search">
+        <div class="search-icon-wrapper">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </div>
+        <input type="text" placeholder="SEARCH_DATABASE...">
+    </div>
+
+    <header>
+        <h1>ParseHikari</h1>
+        <p>解析光 <span>//</span> RESOURCE AGGREGATION & PARSING SYSTEM</p>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="index.html">HOME</a>
+            <a href="resource.html">RESOURCE</a>
+            <a href="collection.html">COLLECTION</a>
+            <a href="library.html">LIBRARY</a>
+        </div>
+    </nav>
+
+    <section id="search-results">
+        <div class="section-header">
+            <h2>SEARCH_RESULTS</h2>
+            <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #555;" id="sys-time">SYSTEM_READY</div>
+        </div>
+
+        <div class="no-results">
+            <h3>No Relevant Content Found</h3>
+            <p>We could not find results related to your search. Please try other keywords or browse recommended content.</p>
+        </div>
+
+        <div class="recommended-movies">
+            <h3>Recommended Movies</h3>
+            <div class="movie-grid" id="recommended-content">
+                <!-- 推荐内容将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2025 ParseHikari. SYSTEM <span>ONLINE</span>. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParseHikari | 解析光</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        @font-face {
+            font-family: 'YamahaEBM10';
+            src: url('./fonts/Yamaha EBM10 Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        :root {
+            --primary: #00f0ff;      /* 赛博蓝 */
+            --secondary: #52ffb8;    /* 荧光绿 */
+            --bg-dark: #0a0a0c;      /* 深邃黑 */
+            --card-bg: rgba(20, 20, 25, 0.6);
+            --text-main: #e5e5e5;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
+            /* 3D 变量默认值 */
+            --rotateX: 0deg;
+            --rotateY: 0deg;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-dark); 
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            z-index: 100;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        #floating-search {
+            position: fixed;
+            top: 30px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            width: 44px;
+            height: 44px;
+            border-radius: 50px;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            overflow: hidden;
+            border: 1px solid var(--primary);
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        #floating-search:hover, #floating-search.active {
+            width: 280px;
+            border-radius: 22px;
+            background: rgba(10, 10, 10, 0.9);
+            padding-left: 15px;
+        }
+
+        .search-icon-wrapper {
+            min-width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #floating-search img {
+            width: 20px;
+            height: 20px;
+            filter: drop-shadow(0 0 2px var(--primary));
+        }
+
+        #floating-search input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            outline: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding-right: 15px;
+        }
+
+        #floating-search:hover input, #floating-search.active input {
+            opacity: 1;
+        }
+
+        /* Header 区域 (略，保持 Glitch 效果不变) */
+        header {
+            text-align: center;
+            padding: 80px 0 40px;
+            position: relative;
+        }
+
+        header h1 {
+            font-family: 'YamahaEBM10', sans-serif; 
+            font-size: 64px;
+            color: #fff;
+            margin: 0;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+            text-shadow: 2px 2px 0px var(--primary);
+            animation: flicker 0.15s infinite alternate, glitch-shift 0.8s infinite step-end; 
+        }
+
+        @keyframes flicker {
+            0% { text-shadow: 0 0 5px rgba(0, 240, 255, 0.5); opacity: 1; }
+            5% { text-shadow: none; opacity: 0.98; }
+            10% { text-shadow: 0 0 8px rgba(0, 240, 255, 0.8); opacity: 1; }
+            20% { text-shadow: none; opacity: 0.95; }
+            25% { text-shadow: 0 0 10px rgba(0, 240, 255, 1); opacity: 1; }
+            100% { text-shadow: 0 0 5px rgba(0, 240, 255, 0.5); opacity: 1; }
+        }
+
+        header h1::after {
+            content: "ParseHikari";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: var(--primary);
+            mix-blend-mode: hard-light;
+            animation: glitch-color 0.8s infinite step-end;
+        }
+
+        @keyframes glitch-shift {
+            0% { transform: translate(1px, 1px); }
+            25% { transform: translate(-1px, 1px); }
+            50% { transform: translate(1px, -1px); }
+            75% { transform: translate(-1px, -1px); }
+            100% { transform: translate(1px, 1px); }
+        }
+        
+        @keyframes glitch-color {
+            0% { text-shadow: 3px 0 0 var(--primary), -3px 0 0 var(--secondary); transform: translate(1px, 1px); }
+            15% { text-shadow: 3px 0 0 var(--secondary), -3px 0 0 var(--primary); transform: translate(-1px, 1px); }
+            30% { text-shadow: 0 3px 0 var(--primary), 0 -3px 0 var(--secondary); transform: translate(1px, -1px); }
+            45% { text-shadow: 0 -3px 0 var(--secondary), 0 3px 0 var(--primary); transform: translate(-1px, -1px); }
+            60% { text-shadow: 5px 5px 0 var(--primary), -5px -5px 0 var(--secondary); transform: translate(2px, 2px); }
+            75% { text-shadow: -5px -5px 0 var(--secondary), 5px 5px 0 var(--primary); transform: translate(-2px, -2px); }
+            90% { text-shadow: 2px 2px 0 var(--primary), -2px -2px 0 var(--secondary); transform: translate(0, 0); }
+            100% { text-shadow: 3px 0 0 var(--primary), -3px 0 0 var(--secondary); transform: translate(1px, 1px); }
+        }
+
+        header p {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--secondary);
+            font-size: 14px;
+            margin-top: 10px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        header p span {
+            color: var(--primary);
+            margin: 0 10px;
+        }
+
+        /* 导航栏 (略) */
+        nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+
+        .nav-container {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            padding: 10px 30px;
+            border-radius: 100px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            gap: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #888;
+            font-size: 14px;
+            font-weight: 500;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        nav a:hover, nav a.active {
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255,255,255,0.5);
+        }
+
+        nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--primary);
+        }
+
+        /* 主要内容区 (略) */
+        #recommend {
+            width: 90%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-bottom: 100px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+
+        .section-header h2 {
+            font-family: 'YamahaEBM10', sans-serif; 
+            font-size: 24px;
+            color: var(--primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-header h2::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 24px;
+            background: var(--primary);
+            margin-right: 15px;
+            transform: skewX(-20deg);
+        }
+
+        /* 网格布局 */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 30px;
+            perspective: 1500px; 
+        }
+
+        /* ---------------------------------- */
+        /* ✨ 3D 效果 CSS (移除动态反光) */
+        /* ---------------------------------- */
+        .movie-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            
+            /* 启用 3D 效果 */
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out, box-shadow 0.4s; 
+            
+            /* 应用 JS 动态设置的 3D 旋转和浮动 */
+            transform: rotateX(var(--rotateX)) rotateY(var(--rotateY)) translateZ(0); 
+            
+            /* **新增：悬停时卡片表面固定高光效果** */
+            background-image: radial-gradient(
+                circle at 50% 0%, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0) 60%
+            ), var(--card-bg);
+            background-blend-mode: overlay;
+        }
+
+        .movie-card:hover {
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 240, 255, 0.4); 
+            z-index: 10;
+        }
+        
+        /* 内部元素 (略) */
+        .card-image-wrapper, .card-info {
+            transform: translateZ(20px); 
+            transition: transform 0.3s;
+        }
+
+        .card-image-wrapper {
+            position: relative;
+            padding-top: 140%; 
+            overflow: hidden;
+        }
+
+        .movie-card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.5s ease;
+            filter: grayscale(30%) brightness(0.9);
+        }
+
+        .movie-card:hover img {
+            filter: grayscale(0%) brightness(1.1);
+            transform: scale(1.05) translateZ(10px); 
+        }
+
+        .card-info {
+            padding: 15px;
+            position: relative;
+        }
+
+        .card-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 15px;
+            right: 15px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+        }
+
+        .movie-card h3 {
+            font-size: 16px;
+            margin: 5px 0 10px;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #aaa;
+            background: rgba(0,0,0,0.3);
+            text-transform: uppercase;
+        }
+
+        .tag.res-4k { border-color: var(--primary); color: var(--primary); background: rgba(0, 240, 255, 0.1); }
+        .tag.hdr { border-color: #ffbd2e; color: #ffbd2e; background: rgba(255, 189, 46, 0.1); }
+        .tag.atmos { border-color: var(--secondary); color: var(--secondary); background: rgba(82, 255, 184, 0.1); }
+
+        .meta-data {
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--glass-border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #444;
+        }
+
+        footer span { color: var(--primary); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>ParseHikari</h1>
+        <p>解析光 <span>//</span> RESOURCE AGGREGATION & PARSING SYSTEM</p>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="active">HOME</a>
+            <a href="#">RESOURCE</a>
+            <a href="#">COLLCETION</a>
+            <a href="#">LIBRARY</a>
+        </div>
+    </nav>
+
+    <section id="recommend">
+        <div class="section-header">
+            <h2>LATEST_UPLOADS</h2>
+            <div style="font-family:'JetBrains Mono'; font-size:12px; color:#555;" id="sys-time">SYSTEM_READY</div>
+        </div>
+
+        <div class="movie-grid">
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg" alt="Movie Poster: The Shawshank Redemption">
+                </div>
+                <div class="card-info">
+                    <h3>The Shawshank Redemption</h3>
+                    <div class="tags">
+                        <span class="tag res-4k">2160P</span>
+                        <span class="tag hdr">HDR10+</span>
+                        <span class="tag atmos">TrueHD</span>
+                        <span class="tag">REMUX</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>86.4 GB</span>
+                        <span>2024.03.01</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="./Poster/ROI.jpg" alt="Movie Poster: Lord of the Rings: ROI">
+                </div>
+                <div class="card-info">
+                    <h3>Lord of the Rings: ROI</h3>
+                    <div class="tags">
+                        <span class="tag res-4k">4K</span>
+                        <span class="tag hdr">DOVI</span>
+                        <span class="tag">x265</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>42.1 GB</span>
+                        <span>2024.02.28</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" alt="Movie Poster: Oppenheimer">
+                </div>
+                <div class="card-info">
+                    <h3>Oppenheimer</h3>
+                    <div class="tags">
+                        <span class="tag">1080P</span>
+                        <span class="tag">WEB-DL</span>
+                        <span class="tag">AAC</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>8.2 GB</span>
+                        <span>2024.02.25</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="https://image.tmdb.org/t/p/w500/fiVW06jE7z9YnO4trhaMEdclSiC.jpg" alt="Movie Poster: Fast X">
+                </div>
+                <div class="card-info">
+                    <h3>Fast X</h3>
+                    <div class="tags">
+                        <span class="tag res-4k">2160P</span>
+                        <span class="tag hdr">HDR</span>
+                        <span class="tag atmos">ATMOS</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>62.5 GB</span>
+                        <span>2024.02.20</span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+    </section>
+
+    <footer>
+        <p>© 2025 ParseHikari. SYSTEM <span>ONLINE</span>. All rights reserved.</p>
+    </footer>
+
+    <div id="floating-search">
+        <div class="search-icon-wrapper">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+        <input type="text" placeholder="SEARCH_DATABASE...">
+    </div>
+
+    <script>
+        // ----------------------------------
+        // ✨ 3D 效果核心 JavaScript 逻辑
+        // ----------------------------------
+        const cards = document.querySelectorAll('.movie-card');
+        const MAX_ROTATION = 12; 
+        const MAX_FLOAT_Z = 30; 
+
+        cards.forEach(card => {
+            
+            // 鼠标移动事件
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                
+                // 1. 计算鼠标相对于卡片中心的百分比位置 (-1.0 到 1.0)
+                const xAxis = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+                const yAxis = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+
+                // 2. 计算旋转角度
+                const rotateY = xAxis * MAX_ROTATION * -1; 
+                const rotateX = yAxis * MAX_ROTATION;      
+                
+                // 3. 应用 CSS 变量和 3D 浮动
+                card.style.setProperty('--rotateX', `${rotateX}deg`);
+                card.style.setProperty('--rotateY', `${rotateY}deg`);
+                
+                // 4. 关键点：在移动时应用 Z 轴浮动，实现倾斜同时浮出
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${MAX_FLOAT_Z}px)`; 
+            });
+
+            // 鼠标移出事件：恢复卡片状态
+            card.addEventListener('mouseleave', () => {
+                card.style.setProperty('--rotateX', '0deg');
+                card.style.setProperty('--rotateY', '0deg');
+                
+                // 关键点：移出时 Z 轴浮动恢复为 0，并应用缓动过渡
+                card.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`; 
+            });
+        });
+
+        function updateTime() {
+            const now = new Date();
+            const datePart = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            const timePart = now.toTimeString().split(' ')[0];
+            const timeString = datePart + ' ' + timePart;
+            document.getElementById('sys-time').innerText = 'SYS_TIME: ' + timeString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+    
+</body>
+</html>

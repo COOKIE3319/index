@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParseHikari | LIBRARY</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="floating-search">
+        <div class="search-icon-wrapper">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </div>
+        <input type="text" placeholder="SEARCH_LIBRARY...">
+    </div>
+
+    <header>
+        <h1>ParseHikari</h1>
+        <p>解析光 <span>//</span> RESOURCE AGGREGATION & PARSING SYSTEM</p>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="index.html">HOME</a>
+            <a href="resource.html">RESOURCE</a>
+            <a href="collection.html">COLLECTION</a>
+            <a href="library.html" class="active">LIBRARY</a>
+        </div>
+    </nav>
+
+    <section id="library">
+        <div class="section-header">
+            <h2>MEDIA_LIBRARY</h2>
+            <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #555;" id="sys-time">SYSTEM_READY</div>
+        </div>
+
+        <div class="movie-grid">
+            <!-- Media library module sample content -->
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="https://via.placeholder.com/220x330?text=LIBRARY+1" alt="Library 1">
+                </div>
+                <div class="card-info">
+                    <h3>Library Title 1</h3>
+                    <div class="tags">
+                        <span class="tag res-4k">4K</span>
+                        <span class="tag hdr">HDR</span>
+                        <span class="tag atmos">ATMOS</span>
+                        <span class="tag remux">REMUX</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>86.4 GB</span>
+                        <span>2024.03.01</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="https://via.placeholder.com/220x330?text=LIBRARY+2" alt="Library 2">
+                </div>
+                <div class="card-info">
+                    <h3>Library Title 2</h3>
+                    <div class="tags">
+                        <span class="tag 1080p">1080P</span>
+                        <span class="tag atmos">AAC</span>
+                        <span class="tag web-dl">WEB-DL</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>42.1 GB</span>
+                        <span>2024.02.28</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="https://via.placeholder.com/220x330?text=LIBRARY+3" alt="Library 3">
+                </div>
+                <div class="card-info">
+                    <h3>Library Title 3</h3>
+                    <div class="tags">
+                        <span class="tag res-4k">2160P</span>
+                        <span class="tag hdr">HDR10+</span>
+                        <span class="tag atmos">TRUEHD</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>62.5 GB</span>
+                        <span>2024.02.20</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="movie-card">
+                <div class="card-image-wrapper">
+                    <img src="https://via.placeholder.com/220x330?text=LIBRARY+4" alt="Library 4">
+                </div>
+                <div class="card-info">
+                    <h3>Library Title 4</h3>
+                    <div class="tags">
+                        <span class="tag 720p">720P</span>
+                        <span class="tag atmos">AAC</span>
+                        <span class="tag bdrip">BDRIP</span>
+                    </div>
+                    <div class="meta-data">
+                        <span>8.2 GB</span>
+                        <span>2024.02.15</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2025 ParseHikari. SYSTEM <span>ONLINE</span>. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

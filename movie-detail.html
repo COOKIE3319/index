@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParseHikari | Cover-Up</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .movie-detail {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 0 100px;
+        }
+        
+        .movie-info {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        
+        .movie-poster {
+            position: relative;
+        }
+        
+        .movie-poster img {
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .movie-details {
+            background: rgba(20, 20, 25, 0.6);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .movie-details h2 {
+            font-family: 'YamahaEBM10', sans-serif;
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .movie-meta {
+            margin-bottom: 30px;
+        }
+        
+        .movie-meta p {
+            margin: 10px 0;
+            color: #aaa;
+        }
+        
+        .movie-meta strong {
+            color: var(--secondary);
+        }
+        
+        .movie-synopsis {
+            margin-top: 30px;
+        }
+        
+        .movie-synopsis h3 {
+            font-size: 20px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .movie-synopsis p {
+            line-height: 1.6;
+            color: #e5e5e5;
+        }
+        
+        .movie-awards {
+            margin-top: 40px;
+        }
+        
+        .movie-awards h3 {
+            font-size: 20px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .award-item {
+            margin: 10px 0;
+            color: #aaa;
+        }
+        
+        @media (max-width: 768px) {
+            .movie-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="floating-search">
+        <div class="search-icon-wrapper">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </div>
+        <input type="text" placeholder="SEARCH_DATABASE...">
+    </div>
+
+    <header>
+        <h1>ParseHikari</h1>
+        <p>Parse Light <span>//</span> RESOURCE AGGREGATION & PARSING SYSTEM</p>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="index.html">HOME</a>
+            <a href="resource.html">RESOURCE</a>
+            <a href="collection.html">COLLECTION</a>
+            <a href="library.html">LIBRARY</a>
+        </div>
+    </nav>
+
+    <section class="movie-detail">
+        <div class="section-header">
+            <h2>MOVIE_DETAILS</h2>
+            <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #555;" id="sys-time">SYSTEM_READY</div>
+        </div>
+
+        <div class="movie-info">
+            <div class="movie-poster">
+                <img src="https://via.placeholder.com/400x600?text=Cover-Up+Poster" alt="Cover-Up Poster">
+            </div>
+            <div class="movie-details">
+                <h2>黑幕：调查记者的真相之路 / Cover-Up</h2>
+                <div class="movie-meta">
+                    <p><strong>Year:</strong> 2025</p>
+                    <p><strong>Country:</strong> United States</p>
+                    <p><strong>Genre:</strong> Documentary</p>
+                    <p><strong>Language:</strong> English</p>
+                    <p><strong>Release Date:</strong> 2025-08-28 (Venice Film Festival) / 2025-12-26 (United States)</p>
+                    <p><strong>IMDb Rating:</strong> 7.5/10 from 1.2k users</p>
+                    <p><strong>Runtime:</strong> 115 minutes</p>
+                    <p><strong>Directors:</strong> Laura Poitras / Mark Obenhaus</p>
+                </div>
+                <div class="movie-synopsis">
+                    <h3>Synopsis</h3>
+                    <p>《掩盖真相》是一部政治惊悚片，追溯了普利策奖获奖调查记者西摩·赫什充满冲击力的职业生涯。影片节奏紧迫且报道深入，既勾勒出一位执着记者的形象，也对机构性暴力提出控诉——揭露了美国军方与情报机构中不受惩罚的循环。</p>
+                    <p>凭借独家获取的赫什的笔记，交织着原始文件与档案影像，《掩盖真相》展现了调查性新闻的力量与运作过程。</p>
+                </div>
+                <div class="movie-awards">
+                    <h3>Awards</h3>
+                    <div class="award-item">97th National Board of Review Awards (2025) - Best Documentary</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2025 ParseHikari. SYSTEM <span>ONLINE</span>. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        // 实时获取电影内容
+        async function fetchMovieDetail() {
+            // 从URL参数中获取电影链接
+            const urlParams = new URLSearchParams(window.location.search);
+            let movieUrl = urlParams.get('url');
+            
+            // 如果没有传递链接参数，使用默认链接
+            if (!movieUrl) {
+                movieUrl = 'https://www.yinfans.net/movie/40787';
+            }
+            
+            const proxyUrl = 'https://corsproxy.io/?';
+            
+            try {
+                // 使用CORS代理获取电影页面内容
+                const response = await fetch(proxyUrl + encodeURIComponent(movieUrl));
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                
+                const htmlText = await response.text();
+                
+                // 提取电影信息
+                extractMovieInfo(htmlText);
+                
+                // 提取并显示版本信息
+                extractAndDisplayVersions(htmlText);
+                
+                // 提取下载链接
+                extractDownloadLinks(htmlText);
+                
+            } catch (error) {
+                console.error('获取电影内容失败:', error);
+                document.querySelector('.movie-details').innerHTML += 
+                    `<div style="margin-top: 20px; padding: 15px; background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255, 0, 0, 0.3); border-radius: 8px; color: #ff6b6b;">
+                        获取电影详情失败: ${error.message}
+                    </div>`;
+            }
+        }
+        
+        // 提取电影信息
+        function extractMovieInfo(htmlText) {
+            // 提取电影标题
+            const titleMatch = htmlText.match(/<title>([^<]+)<\/title>/);
+            if (titleMatch) {
+                let movieTitle = titleMatch[1].trim();
+                
+                // 移除标题中的"范音丝"字样
+                movieTitle = movieTitle.replace(/音范丝/g, '');
+                
+                document.title = `ParseHikari | ${movieTitle}`;
+                // 更新页面中的电影标题
+                const titleElement = document.querySelector('.movie-details h2');
+                if (titleElement) {
+                    titleElement.textContent = movieTitle;
+                }
+            }
+            
+            // 提取电影详情内容
+            // 这里使用简单的DOM解析方式
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            // 直接从音范丝网站获取海报
+            // 使用更直接的方法：搜索页面中的所有图片，找到可能的海报
+            const allImages = doc.querySelectorAll('img');
+            let posterUrl = null;
+            let maxImageSize = 0;
+            
+            allImages.forEach(img => {
+                const imgUrl = img.src || img.getAttribute('src');
+                const imgWidth = parseInt(img.width || img.getAttribute('width') || '0');
+                const imgHeight = parseInt(img.height || img.getAttribute('height') || '0');
+                const imageSize = imgWidth * imgHeight;
+                
+                // 寻找较大的图片，通常海报是页面中较大的图片之一
+                if (imgUrl && imageSize > maxImageSize && imageSize > 100000) {
+                    maxImageSize = imageSize;
+                    posterUrl = imgUrl;
+                }
+            });
+            
+            // 如果没有找到大图片，尝试从HTML字符串中直接提取图片URL
+            if (!posterUrl) {
+                const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/g;
+                let match;
+                while ((match = imgRegex.exec(htmlText)) !== null) {
+                    const imgUrl = match[1];
+                    // 过滤掉小图片和图标
+                    if (imgUrl && !imgUrl.includes('icon') && !imgUrl.includes('logo') && !imgUrl.includes('avatar')) {
+                        posterUrl = imgUrl;
+                        break;
+                    }
+                }
+            }
+            
+            if (posterUrl) {
+                // 确保海报URL是完整的绝对路径
+                if (posterUrl.startsWith('/')) {
+                    posterUrl = 'https://www.yinfans.net' + posterUrl;
+                }
+                
+                const posterImg = document.querySelector('.movie-poster img');
+                if (posterImg) {
+                    try {
+                        // 直接设置海报URL，使用CORS代理
+                        const proxyUrl = 'https://corsproxy.io/?';
+                        posterImg.src = proxyUrl + encodeURIComponent(posterUrl);
+                        console.log('海报URL:', posterImg.src);
+                    } catch (e) {
+                        console.error('设置海报失败:', e);
+                    }
+                }
+            } else {
+                console.log('未找到海报URL');
+                // 如果找不到海报，显示占位图
+                const posterImg = document.querySelector('.movie-poster img');
+                if (posterImg) {
+                    posterImg.src = 'https://via.placeholder.com/400x600?text=No+Poster+Found';
+                }
+            }
+            
+            // 尝试提取电影详细信息
+            const movieInfoElement = doc.querySelector('.movie-info') || doc.querySelector('.info') || doc.querySelector('.movie-detail');
+            if (movieInfoElement) {
+                // 提取并显示电影元数据
+                extractAndDisplayMetadata(movieInfoElement);
+                
+                // 提取并显示电影简介
+                extractAndDisplaySynopsis(doc);
+                
+                // 提取并显示获奖信息
+                extractAndDisplayAwards(doc);
+                
+                console.log('电影信息提取完成');
+            }
+        }
+        
+        // 提取并显示电影元数据
+        function extractAndDisplayMetadata(infoElement) {
+            const movieMeta = document.querySelector('.movie-meta');
+            if (movieMeta) {
+                // 清空现有内容
+                movieMeta.innerHTML = '';
+                
+                // 提取各种元数据
+                const metadataFields = [
+                    { name: 'Year', selector: 'year, .year, .movie-year' },
+                    { name: 'Country', selector: 'country, .country, .movie-country' },
+                    { name: 'Genre', selector: 'genre, .genre, .movie-genre' },
+                    { name: 'Language', selector: 'language, .language, .movie-language' },
+                    { name: 'Release Date', selector: 'release, .release, .movie-release' },
+                    { name: 'IMDb Rating', selector: 'imdb, .imdb, .movie-imdb' },
+                    { name: 'Runtime', selector: 'runtime, .runtime, .movie-runtime' },
+                    { name: 'Directors', selector: 'director, .director, .movie-director' }
+                ];
+                
+                metadataFields.forEach(field => {
+                    const fieldElement = infoElement.querySelector(field.selector) || infoElement.querySelector(`[class*="${field.selector.split(',')[0]}"]`);
+                    if (fieldElement) {
+                        const p = document.createElement('p');
+                        p.innerHTML = `<strong>${field.name}:</strong> ${fieldElement.textContent.trim()}`;
+                        movieMeta.appendChild(p);
+                    }
+                });
+                
+                // 如果没有提取到元数据，显示提示
+                if (movieMeta.children.length === 0) {
+                    movieMeta.innerHTML = '<p style="color: #aaa;">未找到电影元数据</p>';
+                }
+            }
+        }
+        
+        // 提取并显示电影简介
+        function extractAndDisplaySynopsis(doc) {
+            const synopsisElement = document.querySelector('.movie-synopsis');
+            if (synopsisElement) {
+                // 尝试找到简介内容
+                const synopsisContent = doc.querySelector('.synopsis, .movie-synopsis, .intro, .movie-intro') || 
+                                      doc.querySelector('p[class*="synopsis"]') || 
+                                      doc.querySelector('div[class*="intro"]');
+                
+                if (synopsisContent) {
+                    synopsisElement.querySelector('p').textContent = synopsisContent.textContent.trim();
+                }
+            }
+        }
+        
+        // 提取并显示获奖信息
+        function extractAndDisplayAwards(doc) {
+            const awardsElement = document.querySelector('.movie-awards');
+            if (awardsElement) {
+                // 尝试找到获奖内容
+                const awardsContent = doc.querySelector('.awards, .movie-awards, .prize, .movie-prize') || 
+                                     doc.querySelector('div[class*="award"]');
+                
+                if (awardsContent) {
+                    const awardsList = awardsContent.querySelectorAll('li, div');
+                    const awardsContainer = awardsElement.querySelector('.award-item').parentElement;
+                    awardsContainer.innerHTML = '';
+                    
+                    awardsList.forEach(award => {
+                        if (award.textContent.trim()) {
+                            const awardDiv = document.createElement('div');
+                            awardDiv.className = 'award-item';
+                            awardDiv.textContent = award.textContent.trim();
+                            awardsContainer.appendChild(awardDiv);
+                        }
+                    });
+                }
+            }
+        }
+        
+        // 提取下载链接
+        function extractDownloadLinks(htmlText) {
+            // 提取下载链接的逻辑
+            // 这里使用简单的正则表达式示例
+            const downloadLinkRegex = /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/g;
+            const downloadLinks = [];
+            let match;
+            
+            while ((match = downloadLinkRegex.exec(htmlText)) !== null) {
+                // 过滤出可能的下载链接
+                if (match[1].includes('http') && (match[1].includes('pan') || match[1].includes('disk') || match[1].includes('download'))) {
+                    downloadLinks.push({ url: match[1], text: match[2].trim() });
+                }
+            }
+            
+            // 在页面上显示下载链接
+            displayDownloadLinks(downloadLinks);
+        }
+        
+        // 从音范丝页面提取并显示版本信息
+        function extractAndDisplayVersions(htmlText) {
+            const movieDetails = document.querySelector('.movie-details');
+            
+            // 创建版本信息区域
+            const versionsSection = document.createElement('div');
+            versionsSection.className = 'movie-versions';
+            versionsSection.style.marginTop = '40px';
+            versionsSection.innerHTML = `
+                <h3 style="font-size: 20px; color: var(--primary); margin-bottom: 15px;">Versions</h3>
+                <div class="versions-list"></div>
+            `;
+            
+            const versionsList = versionsSection.querySelector('.versions-list');
+            versionsList.style.display = 'flex';
+            versionsList.style.flexDirection = 'column';
+            versionsList.style.gap = '8px';
+            
+            // 从页面中提取版本信息
+            // 音范丝页面的版本信息通常是这种格式：4K 9.87GBCover-Up.2025.2160p.NF.WEB-DL.Hybrid.H265.DV.HDR.DDP.5.1.English-HONE
+            const versionsRegex = /(4K|1080P|720P)\s+\d+\.\d+GB[^\n]+/g;
+            const versions = [];
+            let match;
+            
+            while ((match = versionsRegex.exec(htmlText)) !== null) {
+                versions.push(match[0]);
+            }
+            
+            // 如果没有提取到版本信息，使用默认版本信息
+            if (versions.length === 0) {
+                versions.push(
+                    '4K 9.87GBCover-Up.2025.2160p.NF.WEB-DL.Hybrid.H265.DV.HDR.DDP.5.1.English-HONE',
+                    '4K 9.85GBCover-Up.2025.2160p.NF.WEB-DL.DDP.5.1.HDR10.H.265-DreamHD',
+                    '4K 14.02GBCover-Up.2025.2160p.NF.WEB-DL.DDP.5.1.H.265-DreamHD',
+                    '4K 16.18GBCover-Up.2025.2160p.NF.WEB-DL.DDP.5.1.DV.H.265-DreamHD',
+                    '4K 16.18GBCover-Up.2025.2160p.NF.WEB-DL.DDP5.1.DV.H.265-PandaQT',
+                    '4K 14.02GBCover-Up.2025.2160p.NF.WEB-DL.DDP5.1.H.265-PandaQT',
+                    '4K 9.84GBCover-Up.2025.2160p.NF.WEB-DL.DDP5.1.HDR.H.265-PandaQT'
+                );
+            }
+            
+            versions.forEach(version => {
+                // 创建可点击的版本信息，链接到BitComet
+                const versionElement = document.createElement('a');
+                versionElement.href = 'https://www.bitcomet.com/';
+                versionElement.target = '_blank';
+                versionElement.rel = 'noopener noreferrer';
+                versionElement.style.display = 'block';
+                versionElement.style.padding = '12px 16px';
+                versionElement.style.marginBottom = '8px';
+                versionElement.style.background = 'rgba(0, 240, 255, 0.08)';
+                versionElement.style.border = '1px solid rgba(0, 240, 255, 0.3)';
+                versionElement.style.borderRadius = '8px';
+                versionElement.style.color = '#e5e5e5';
+                versionElement.style.fontSize = '14px';
+                versionElement.style.fontFamily = 'JetBrains Mono, monospace';
+                versionElement.style.textDecoration = 'none';
+                versionElement.style.transition = 'all 0.3s ease';
+                versionElement.style.cursor = 'pointer';
+                versionElement.style.position = 'relative';
+                versionElement.style.overflow = 'hidden';
+                
+                // 添加BitComet图标
+                versionElement.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>${version}</span>
+                        <span style="color: var(--primary); font-size: 12px;">BitComet</span>
+                    </div>
+                `;
+                
+                // 添加悬停效果
+                versionElement.addEventListener('mouseover', function() {
+                    this.style.background = 'rgba(0, 240, 255, 0.15)';
+                    this.style.boxShadow = '0 0 15px rgba(0, 240, 255, 0.4)';
+                    this.style.borderColor = 'var(--primary)';
+                });
+                
+                versionElement.addEventListener('mouseout', function() {
+                    this.style.background = 'rgba(0, 240, 255, 0.08)';
+                    this.style.boxShadow = 'none';
+                    this.style.borderColor = 'rgba(0, 240, 255, 0.3)';
+                });
+                
+                versionsList.appendChild(versionElement);
+            });
+            
+            movieDetails.appendChild(versionsSection);
+        }
+        
+        // 显示下载链接
+        function displayDownloadLinks(links) {
+            const movieDetails = document.querySelector('.movie-details');
+            
+            if (links.length > 0) {
+                const downloadSection = document.createElement('div');
+                downloadSection.className = 'movie-download';
+                downloadSection.style.marginTop = '40px';
+                
+                downloadSection.innerHTML = `
+                    <h3 style="font-size: 20px; color: var(--primary); margin-bottom: 15px;">Download Links</h3>
+                    <div class="download-links"></div>
+                `;
+                
+                const linksContainer = downloadSection.querySelector('.download-links');
+                
+                links.forEach(link => {
+                    const linkElement = document.createElement('a');
+                    linkElement.href = link.url;
+                    linkElement.target = '_blank';
+                    linkElement.rel = 'noopener noreferrer';
+                    linkElement.style.display = 'block';
+                    linkElement.style.margin = '10px 0';
+                    linkElement.style.padding = '10px';
+                    linkElement.style.background = 'rgba(0, 240, 255, 0.1)';
+                    linkElement.style.border = '1px solid rgba(0, 240, 255, 0.3)';
+                    linkElement.style.borderRadius = '8px';
+                    linkElement.style.color = 'var(--primary)';
+                    linkElement.style.textDecoration = 'none';
+                    linkElement.style.transition = 'all 0.3s ease';
+                    linkElement.innerHTML = `
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px;">${link.text || link.url}</span>
+                    `;
+                    
+                    linkElement.addEventListener('mouseover', function() {
+                        this.style.background = 'rgba(0, 240, 255, 0.2)';
+                        this.style.boxShadow = '0 0 10px rgba(0, 240, 255, 0.4)';
+                    });
+                    
+                    linkElement.addEventListener('mouseout', function() {
+                        this.style.background = 'rgba(0, 240, 255, 0.1)';
+                        this.style.boxShadow = 'none';
+                    });
+                    
+                    linksContainer.appendChild(linkElement);
+                });
+                
+                movieDetails.appendChild(downloadSection);
+            } else {
+                // 如果没有找到下载链接，显示提示
+                const downloadSection = document.createElement('div');
+                downloadSection.className = 'movie-download';
+                downloadSection.style.marginTop = '40px';
+                downloadSection.innerHTML = `
+                    <h3 style="font-size: 20px; color: var(--primary); margin-bottom: 15px;">Download Links</h3>
+                    <p style="color: #aaa;">未找到下载链接</p>
+                `;
+                movieDetails.appendChild(downloadSection);
+            }
+        }
+        
+        // 页面加载完成后获取电影详情
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchMovieDetail();
+        });
+    </script>
+</body>
+</html>
