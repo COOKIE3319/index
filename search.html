@@ -56,5 +56,11 @@
     </footer>
 
     <script src="js/script.js"></script>
+    <script>
+        // 加载推荐电影（从本地JSON加载）
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchYinfansContent('recommended-content');
+        });
+    </script>
 </body>
 </html>

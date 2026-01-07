@@ -26,316 +26,292 @@ function init3DCards() {
     });
 }
 
-// 获取音范丝RSS内容
+// 移除不允许展示的词汇
+function sanitizeText(text) {
+    if (!text) return text;
+    return text.replace(/音范丝/gi, '').replace(/yinfans/gi, '');
+}
+
+// 从本地JSON文件获取电影数据并显示
 async function fetchYinfansContent(containerId = 'yinfans-content') {
     const container = document.getElementById(containerId);
     container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--primary);">加载中...</div>';
     
     try {
-        // 直接请求本地RSS文件
-        const response = await fetch('./yinfans_rss.xml');
-        if (!response.ok) {
-            throw new Error(`HTTP错误: ${response.status}`);
-        }
-        
-        const xmlText = await response.text();
-        
-        // 使用简单的字符串处理获取所有item
-        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-        const items = [];
-        let match;
-        
-        while ((match = itemRegex.exec(xmlText)) !== null) {
-            items.push(match[1]);
-        }
-        
-        if (items.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--secondary);">未找到内容</div>';
-            return;
-        }
-        
-        container.innerHTML = '';
-        
-        // 处理每个item
-        items.forEach(itemHtml => {
-            try {
-                // 提取标题
-                const titleMatch = itemHtml.match(/<title>([\s\S]*?)<\/title>/);
-                let fullTitle = titleMatch ? titleMatch[1].trim() : '未知标题';
-                
-                // 提取链接
-                const linkMatch = itemHtml.match(/<link>([\s\S]*?)<\/link>/);
-                const link = linkMatch ? linkMatch[1].trim() : '#';
-                
-                // 提取发布日期
-                const pubDateMatch = itemHtml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                const pubDate = pubDateMatch ? new Date(pubDateMatch[1].trim()) : new Date();
-                const formattedDate = `${pubDate.getFullYear()}.${String(pubDate.getMonth() + 1).padStart(2, '0')}.${String(pubDate.getDate()).padStart(2, '0')}`;
-                
-                // 提取电影标题 - 简单可靠的方式：截取空格之前的内容
-                let movieTitle = fullTitle.split(/\s+/)[0] || fullTitle;
-                
-                // 确保标题不为空
-                if (!movieTitle || movieTitle.length < 2) {
-                    movieTitle = fullTitle;
-                }
-                
-                console.log(`处理标题: ${fullTitle} -> ${movieTitle}`);
-                
-                // 提取图片URL - 使用CORS代理绕过ORB限制
-                let imgUrl = 'https://via.placeholder.com/220x330?text=No+Image';
-                
-                // 尝试多种图片提取方式
-                const imgPatterns = [
-                    /<img[^>]+src=["']([^"']+)["']/i,  // 标准格式
-                    /<img[^>]+src=([^\s>]+)/i,        // 无引号格式
-                    /<a[^>]+href=["']([^"']+\.(jpg|jpeg|png|gif|webp))["']/i,  // 链接中的图片
-                    /https:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp)/i  // 直接匹配URL
-                ];
-                
-                for (const pattern of imgPatterns) {
-                    const imgMatch = itemHtml.match(pattern);
-                    if (imgMatch) {
-                        let originalUrl = imgMatch[1];
-                        // 清理URL中的特殊字符
-                        originalUrl = originalUrl.replace(/[\n\r\t]/g, '').trim();
-                        
-                        // 使用CORS代理服务绕过ORB限制
-                        // CORS代理可以将跨域请求转换为同域请求，避免ORB错误
-                        const proxyUrl = 'https://corsproxy.io/?';
-                        imgUrl = proxyUrl + encodeURIComponent(originalUrl);
-                        
-                        console.log(`已处理图片URL: ${originalUrl} -> ${imgUrl}`);
-                        break;
-                    }
-                }
-                
-                // 提取大小信息 - 增强版，支持更多格式
-                let size = '未知大小';
-                
-                // 支持多种大小格式：1.23GB, 1.23 GB, 1234MB, 123G, 123 GB, 123MB
-                const sizePatterns = [
-                    /(\d+\.\d+[ ]?GB)/i,      // 1.23GB, 1.23 GB
-                    /(\d+\.\d+[ ]?MB)/i,      // 1.23MB, 1.23 MB
-                    /(\d+[ ]?GB)/i,           // 123GB, 123 GB
-                    /(\d+[ ]?MB)/i,           // 123MB, 123 MB
-                    /(\d+[ ]?G)/i,            // 123G, 123 G
-                    /(\d+[ ]?M)/i,            // 123M, 123 M
-                ];
-                
-                // 尝试所有大小提取模式
-                for (const pattern of sizePatterns) {
-                    const match = fullTitle.match(pattern);
-                    if (match && match[1]) {
-                        size = match[1];
-                        console.log(`提取到大小: ${size}`);
-                        break;
-                    }
-                }
-                
-                // 特殊处理：如果是GB，确保显示正确的大小写
-                if (size.toLowerCase().includes('gb')) {
-                    size = size.toUpperCase();
-                }
-                
-                // 提取标签信息 - 增强版
-                const tags = [];
-                
-                console.log('开始提取标签信息...');
-                
-                // 1. 提取category标签中的分类信息 - 修复正则表达式
-                const categoryRegex = /<category><!\[CDATA\[([^\]]+)\]\]><\/category>/g;
-                const categories = [];
-                let categoryMatch;
-                
-                console.log('检查itemHtml内容:', itemHtml.substring(0, 500) + '...');
-                
-                // 先尝试简单的字符串匹配方式
-                if (itemHtml.includes('<category>')) {
-                    console.log('itemHtml包含category标签');
-                }
-                
-                // 使用正则表达式匹配
-                while ((categoryMatch = categoryRegex.exec(itemHtml)) !== null) {
-                    const category = categoryMatch[1].trim();
-                    categories.push(category);
-                    console.log('找到分类:', category);
-                }
-                
-                // 如果正则匹配失败，尝试手动提取
-                if (categories.length === 0) {
-                    console.log('正则匹配失败，尝试手动提取category');
-                    
-                    // 简单的手动提取方式
-                    const categoryStart = itemHtml.indexOf('<category><![CDATA[');
-                    if (categoryStart !== -1) {
-                        let currentPos = categoryStart;
-                        while (currentPos < itemHtml.length) {
-                            const start = itemHtml.indexOf('<![CDATA[', currentPos);
-                            if (start === -1) break;
-                            const end = itemHtml.indexOf(']]></category>', start);
-                            if (end === -1) break;
-                            const category = itemHtml.substring(start + 9, end).trim();
-                            categories.push(category);
-                            console.log('手动提取到分类:', category);
-                            currentPos = end + 14;
-                        }
-                    }
-                }
-                
-                console.log('提取到的分类:', categories);
-                
-                // 跳过内容向分类标签，只显示技术标签
-                // 移除分类标签的添加，只保留技术标签
-                
-                // 3. 添加一些面子工程的技术标签，确保每个卡片都有标签显示
-                // 技术标签库，用于随机添加
-                const techTagsLibrary = [
-                    '<span class="tag res-4k">4K</span>',
-                    '<span class="tag res-4k">2160P</span>',
-                    '<span class="tag 1080p">1080P</span>',
-                    '<span class="tag hdr">HDR</span>',
-                    '<span class="tag hdr">HDR10+</span>',
-                    '<span class="tag hdr">DOVI</span>',
-                    '<span class="tag atmos">ATMOS</span>',
-                    '<span class="tag atmos">TRUEHD</span>',
-                    '<span class="tag atmos">AAC</span>',
-                    '<span class="tag remux">REMUX</span>',
-                    '<span class="tag web-dl">WEB-DL</span>',
-                    '<span class="tag bdrip">BDRIP</span>'
-                ];
-                
-                // 如果提取到的标签太少，就随机添加一些技术标签
-                if (tags.length < 2) {
-                    // 随机选择2-4个标签
-                    const numTagsToAdd = Math.floor(Math.random() * 3) + 2;
-                    
-                    for (let i = 0; i < numTagsToAdd; i++) {
-                        // 随机选择一个标签
-                        const randomTag = techTagsLibrary[Math.floor(Math.random() * techTagsLibrary.length)];
-                        // 确保不重复添加相同的标签
-                        if (!tags.includes(randomTag)) {
-                            tags.push(randomTag);
-                            console.log('添加面子工程标签:', randomTag);
-                        }
-                    }
-                }
-                
-                // 2. 从标题中提取技术标签 - 参考index-old.html的标签样式
-                
-                // 分辨率标签
-                if (fullTitle.includes('4K')) {
-                    tags.push('<span class="tag res-4k">4K</span>');
-                } else if (fullTitle.includes('2160P')) {
-                    tags.push('<span class="tag res-4k">2160P</span>');
-                } else if (fullTitle.includes('1080P')) {
-                    tags.push('<span class="tag 1080p">1080P</span>');
-                } else if (fullTitle.includes('720P')) {
-                    tags.push('<span class="tag 720p">720P</span>');
-                }
-                
-                // 格式标签
-                if (fullTitle.includes('WEB-DL')) {
-                    tags.push('<span class="tag web-dl">WEB-DL</span>');
-                } else if (fullTitle.includes('REMUX')) {
-                    tags.push('<span class="tag remux">REMUX</span>');
-                } else if (fullTitle.includes('BDRIP')) {
-                    tags.push('<span class="tag bdrip">BDRIP</span>');
-                }
-                
-                // HDR标签 - 支持多种HDR类型
-                if (fullTitle.includes('HDR10+')) {
-                    tags.push('<span class="tag hdr">HDR10+</span>');
-                } else if (fullTitle.includes('DOVI')) {
-                    tags.push('<span class="tag hdr">DOVI</span>');
-                } else if (fullTitle.includes('HDR')) {
-                    tags.push('<span class="tag hdr">HDR</span>');
-                }
-                
-                // 音频标签 - 支持更多音频格式
-                if (fullTitle.includes('ATMOS')) {
-                    tags.push('<span class="tag atmos">ATMOS</span>');
-                } else if (fullTitle.includes('TrueHD') || fullTitle.includes('TRUEHD')) {
-                    tags.push('<span class="tag atmos">TRUEHD</span>');
-                } else if (fullTitle.includes('DTS:X') || fullTitle.includes('DTS-X')) {
-                    tags.push('<span class="tag atmos">DTS:X</span>');
-                } else if (fullTitle.includes('AAC')) {
-                    tags.push('<span class="tag atmos">AAC</span>');
-                }
-                
-                // 3. 从content:encoded中提取更多信息
-                const contentEncoded = itemHtml.match(/<content:encoded>\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/);
-                if (contentEncoded) {
-                    const content = contentEncoded[1];
-                    
-                    // 提取IMDb评分信息 - 只保留技术相关的标签
-                    const imdbMatch = content.match(/◎IMDb评分\s+(\d+\.\d+)/);
-                    if (imdbMatch) {
-                        const rating = imdbMatch[1].trim();
-                        tags.push(`<span class="tag">IMDb ${rating}</span>`);
-                        console.log('添加IMDb评分标签:', rating);
-                    }
-                }
-                
-                // 创建电影卡片
+        // 先加载movies-index.json的4个电影
+        const localResp = await fetch('js/movies-index.json');
+        if (localResp && localResp.ok) {
+            const localMovies = await localResp.json();
+            container.innerHTML = '';
+            
+            // 渲染本地四部电影（带标签）
+            localMovies.forEach((lm, idx) => {
+                const movieTitle = sanitizeText(lm['译名'] || lm['片名'] || '未知片名');
+                const link = `movie-detail.html?local=${idx}`;
+                const imgUrl = lm.poster || 'https://via.placeholder.com/220x330?text=No+Poster';
+
                 const card = document.createElement('div');
                 card.className = 'movie-card';
-                
-                // 创建图片元素并添加错误处理
+
                 const img = document.createElement('img');
                 img.src = imgUrl;
                 img.alt = movieTitle;
-                
-                // 添加图片加载错误处理
-                img.onerror = function() {
-                    console.warn(`图片加载失败: ${imgUrl}`);
-                    // 加载失败时使用占位图
-                    this.src = 'https://via.placeholder.com/220x330?text=Image+Failed';
-                };
-                
-                // 创建卡片结构
+                img.onerror = function() { this.src = 'https://via.placeholder.com/220x330?text=No+Poster'; };
+
                 const cardImageWrapper = document.createElement('div');
                 cardImageWrapper.className = 'card-image-wrapper';
                 cardImageWrapper.appendChild(img);
-                
+
                 const cardInfo = document.createElement('div');
                 cardInfo.className = 'card-info';
+                
+                // 处理标签字段，分割成多个tag并添加颜色类
+                const tags = lm['标签'] ? lm['标签'].split('/').map(t => {
+                    const tag = t.trim();
+                    const tagLower = tag.toLowerCase();
+                    let className = 'tag';
+                    
+                    // 根据标签内容添加对应的类名
+                    if (tagLower.includes('4k')) className += ' res-4k';
+                    else if (tagLower.includes('hdr')) className += ' hdr';
+                    else if (tagLower.includes('atmos') || tagLower.includes('全景声')) className += ' atmos';
+                    else if (tagLower.includes('1080')) className += ' tag-1080';
+                    else if (tagLower.includes('720')) className += ' tag-720';
+                    else if (tagLower.includes('remux')) className += ' tag-remux';
+                    else if (tagLower.includes('web-dl') || tagLower.includes('web')) className += ' tag-web-dl';
+                    else if (tagLower.includes('bdrip') || tagLower.includes('蓝光')) className += ' tag-bdrip';
+                    else if (tagLower.includes('dolby') || tagLower.includes('杜比')) className += ' atmos';
+                    
+                    return `<span class="${className}">${tag}</span>`;
+                }).join('') : '';
+                
                 cardInfo.innerHTML = `
                     <h3>${movieTitle}</h3>
                     <div class="tags">
-                        ${tags.join('')}
-                    </div>
-                    <div class="meta-data">
-                        <span>${size}</span>
-                        <span>${formattedDate}</span>
+                        ${tags}
                     </div>
                 `;
-                
+
                 card.appendChild(cardImageWrapper);
                 card.appendChild(cardInfo);
-                
-                // 添加内部页面跳转逻辑
-                // 点击卡片后跳转到电影详情页面，并带上电影链接参数
-                card.addEventListener('click', () => {
-                    // 构建带参数的URL，传递电影原始链接
-                    window.location.href = `movie-detail.html?url=${encodeURIComponent(link)}`;
-                });
-                
+                card.addEventListener('click', () => { window.location.href = link; });
                 container.appendChild(card);
+            });
+        }
+        
+        // 再加载movies-more.json的电影（只显示标题和海报，随机添加标签）
+        const moreResp = await fetch('js/movies-more.json');
+        if (moreResp && moreResp.ok) {
+            const moreMovies = await moreResp.json();
+            
+            // 标签池
+            const tagPool = [
+                { text: '4K', class: 'res-4k' },
+                { text: '1080P', class: 'tag-1080' },
+                { text: 'HDR', class: 'hdr' },
+                { text: 'REMUX', class: 'tag-remux' },
+                { text: 'WEB-DL', class: 'tag-web-dl' },
+                { text: 'BluRay', class: 'tag-bdrip' },
+                { text: 'Atmos', class: 'atmos' },
+                { text: '杜比视界', class: 'hdr' }
+            ];
+            
+            moreMovies.forEach((movie) => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+
+                const img = document.createElement('img');
+                img.src = movie.poster || 'https://via.placeholder.com/220x330?text=No+Poster';
+                img.alt = movie.title || '电影';
+                img.onerror = function() { this.src = 'https://via.placeholder.com/220x330?text=No+Poster'; };
+
+                const cardImageWrapper = document.createElement('div');
+                cardImageWrapper.className = 'card-image-wrapper';
+                cardImageWrapper.appendChild(img);
+
+                const cardInfo = document.createElement('div');
+                cardInfo.className = 'card-info';
                 
-                // 输出调试信息
-                console.log(`已添加卡片: ${movieTitle}, 图片URL: ${imgUrl}`);
-            } catch (e) {
-                console.error('处理item失败:', e);
-            }
-        });
+                // 随机选择2-4个标签
+                const numTags = Math.floor(Math.random() * 3) + 2; // 2-4个标签
+                const shuffled = [...tagPool].sort(() => 0.5 - Math.random());
+                const selectedTags = shuffled.slice(0, numTags);
+                
+                const tagsHtml = selectedTags.map(tag => 
+                    `<span class="tag ${tag.class}">${tag.text}</span>`
+                ).join('');
+                
+                cardInfo.innerHTML = `
+                    <h3>${movie.title}</h3>
+                    <div class="tags">
+                        ${tagsHtml}
+                    </div>
+                `;
+
+                card.appendChild(cardImageWrapper);
+                card.appendChild(cardInfo);
+                container.appendChild(card);
+            });
+        }
         
         // 初始化3D效果
         init3DCards();
         
-    } catch (error) {
-        console.error('获取或处理RSS内容失败:', error);
-        container.innerHTML = `<div style="text-align: center; padding: 50px; color: var(--secondary);">加载失败: ${error.message}</div>`;
+    } catch (e) {
+        console.error('加载电影失败:', e);
+        container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--secondary);">加载失败</div>';
+    }
+}
+
+// 随机加载movies-more中的电影
+async function fetchRandomMovies(containerId, count = 12) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--primary);">加载中...</div>';
+    
+    // 检查是否是collection页面
+    const isCollectionPage = containerId === 'collection-content';
+    
+    try {
+        const resp = await fetch('js/movies-more.json');
+        if (resp && resp.ok) {
+            const allMovies = await resp.json();
+            
+            // 随机打乱数组并取前count个
+            const shuffled = [...allMovies].sort(() => 0.5 - Math.random());
+            const selectedMovies = shuffled.slice(0, count);
+            
+            container.innerHTML = '';
+            
+            // 标签池
+            const tagPool = [
+                { text: '4K', class: 'res-4k' },
+                { text: '1080P', class: 'tag-1080' },
+                { text: 'HDR', class: 'hdr' },
+                { text: 'REMUX', class: 'tag-remux' },
+                { text: 'WEB-DL', class: 'tag-web-dl' },
+                { text: 'BluRay', class: 'tag-bdrip' },
+                { text: 'Atmos', class: 'atmos' },
+                { text: '杜比视界', class: 'hdr' }
+            ];
+            
+            selectedMovies.forEach((movie) => {
+                if (isCollectionPage) {
+                    // COLLECTION页面特殊样式
+                    const card = document.createElement('div');
+                    card.className = 'movie-card collection-card';
+                    card.style.backgroundImage = `url('${movie.poster || 'https://via.placeholder.com/220x330?text=No+Poster'}')`;
+                    
+                    const overlay = document.createElement('div');
+                    overlay.className = 'collection-overlay';
+                    
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'collection-title';
+                    
+                    // 处理标题，将"/"替换为换行
+                    const titleParts = movie.title.split('/');
+                    titleDiv.innerHTML = titleParts.map(part => `<span>${part.trim()}</span>`).join('');
+                    
+                    overlay.appendChild(titleDiv);
+                    card.appendChild(overlay);
+                    container.appendChild(card);
+                } else {
+                    // 其他页面正常样式
+                    const card = document.createElement('div');
+                    card.className = 'movie-card';
+
+                    const img = document.createElement('img');
+                    img.src = movie.poster || 'https://via.placeholder.com/220x330?text=No+Poster';
+                    img.alt = movie.title || '电影';
+                    img.onerror = function() { this.src = 'https://via.placeholder.com/220x330?text=No+Poster'; };
+
+                    const cardImageWrapper = document.createElement('div');
+                    cardImageWrapper.className = 'card-image-wrapper';
+                    cardImageWrapper.appendChild(img);
+
+                    const cardInfo = document.createElement('div');
+                    cardInfo.className = 'card-info';
+                    
+                    // 随机选择2-4个标签
+                    const numTags = Math.floor(Math.random() * 3) + 2;
+                    const shuffledTags = [...tagPool].sort(() => 0.5 - Math.random());
+                    const selectedTags = shuffledTags.slice(0, numTags);
+                    
+                    const tagsHtml = selectedTags.map(tag => 
+                        `<span class="tag ${tag.class}">${tag.text}</span>`
+                    ).join('');
+                    
+                    cardInfo.innerHTML = `
+                        <h3>${movie.title}</h3>
+                        <div class="tags">
+                            ${tagsHtml}
+                        </div>
+                    `;
+
+                    card.appendChild(cardImageWrapper);
+                    card.appendChild(cardInfo);
+                    container.appendChild(card);
+                }
+            });
+            
+            // 初始化3D效果
+            init3DCards();
+        } else {
+            container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--secondary);">加载失败</div>';
+        }
+    } catch (e) {
+        console.error('加载随机电影失败:', e);
+        container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--secondary);">加载失败</div>';
+    }
+}
+
+// 为collection页面加载电影的专用函数
+async function fetchCollectionMovies(containerId, count = 6) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--primary);">加载中...</div>';
+    
+    try {
+        const resp = await fetch('js/movies-more.json');
+        if (resp && resp.ok) {
+            const allMovies = await resp.json();
+            
+            // 随机打乱数组并取前count个
+            const shuffled = [...allMovies].sort(() => 0.5 - Math.random());
+            const selectedMovies = shuffled.slice(0, count);
+            
+            container.innerHTML = '';
+            
+            selectedMovies.forEach((movie) => {
+                const card = document.createElement('div');
+                card.className = 'movie-card collection-card';
+                card.style.backgroundImage = `url('${movie.poster || 'https://via.placeholder.com/220x330?text=No+Poster'}')`;
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'collection-overlay';
+                
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'collection-title';
+                
+                // 处理标题，将"/"替换为换行
+                const titleParts = movie.title.split('/');
+                titleDiv.innerHTML = titleParts.map(part => `<span>${part.trim()}</span>`).join('');
+                
+                overlay.appendChild(titleDiv);
+                card.appendChild(overlay);
+                container.appendChild(card);
+            });
+            
+            // 初始化3D效果
+            init3DCards();
+        } else {
+            container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--secondary);">加载失败</div>';
+        }
+    } catch (e) {
+        console.error('加载collection电影失败:', e);
+        container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--secondary);">加载失败</div>';
     }
 }
 
@@ -365,7 +341,7 @@ function initSearch() {
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && searchInput.value.trim()) {
             // 跳转到搜索结果页面
-            window.location.href = 'search.html';
+            window.location.href = `search.html?q=${encodeURIComponent(searchInput.value.trim())}`;
         }
     });
 }
@@ -384,13 +360,10 @@ window.addEventListener('DOMContentLoaded', () => {
     setInterval(updateTime, 1000);
     updateTime();
     
-    // 首页(index.html)获取RSS内容
+    // 首页(index.html)获取电影数据
     if (document.getElementById('yinfans-content')) {
         fetchYinfansContent();
     }
-    
-    // 搜索结果页面(search.html)获取推荐内容
-    if (document.getElementById('recommended-content')) {
-        fetchYinfansContent('recommended-content');
-    }
 });
+
+// Script loaded successfully - v1.0

@@ -38,76 +38,8 @@
             <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #555;" id="sys-time">SYSTEM_READY</div>
         </div>
 
-        <div class="movie-grid">
-            <!-- Resource module sample content -->
-            <div class="movie-card">
-                <div class="card-image-wrapper">
-                    <img src="https://via.placeholder.com/220x330?text=RESOURCE+1" alt="Resource 1">
-                </div>
-                <div class="card-info">
-                    <h3>Resource Title 1</h3>
-                    <div class="tags">
-                        <span class="tag res-4k">4K</span>
-                        <span class="tag hdr">HDR</span>
-                        <span class="tag atmos">ATMOS</span>
-                    </div>
-                    <div class="meta-data">
-                        <span>86.4 GB</span>
-                        <span>2024.03.01</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="movie-card">
-                <div class="card-image-wrapper">
-                    <img src="https://via.placeholder.com/220x330?text=RESOURCE+2" alt="Resource 2">
-                </div>
-                <div class="card-info">
-                    <h3>Resource Title 2</h3>
-                    <div class="tags">
-                        <span class="tag 1080p">1080P</span>
-                        <span class="tag atmos">ATMOS</span>
-                    </div>
-                    <div class="meta-data">
-                        <span>42.1 GB</span>
-                        <span>2024.02.28</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="movie-card">
-                <div class="card-image-wrapper">
-                    <img src="https://via.placeholder.com/220x330?text=RESOURCE+3" alt="Resource 3">
-                </div>
-                <div class="card-info">
-                    <h3>Resource Title 3</h3>
-                    <div class="tags">
-                        <span class="tag remux">REMUX</span>
-                        <span class="tag hdr">HDR</span>
-                    </div>
-                    <div class="meta-data">
-                        <span>62.5 GB</span>
-                        <span>2024.02.20</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="movie-card">
-                <div class="card-image-wrapper">
-                    <img src="https://via.placeholder.com/220x330?text=RESOURCE+4" alt="Resource 4">
-                </div>
-                <div class="card-info">
-                    <h3>Resource Title 4</h3>
-                    <div class="tags">
-                        <span class="tag 720p">720P</span>
-                        <span class="tag web-dl">WEB-DL</span>
-                    </div>
-                    <div class="meta-data">
-                        <span>8.2 GB</span>
-                        <span>2024.02.15</span>
-                    </div>
-                </div>
-            </div>
+        <div class="movie-grid" id="resource-content">
+            <!-- 内容将通过JavaScript动态加载 -->
         </div>
     </section>
 
@@ -116,5 +48,10 @@
     </footer>
 
     <script src="js/script.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchRandomMovies('resource-content', 12);
+        });
+    </script>
 </body>
 </html>
