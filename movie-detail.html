@@ -529,16 +529,11 @@
             const resourcePanel = document.getElementById('resource-panel');
             if (resourcePanel) resourcePanel.style.display = 'none';
         }
-        
-        function sanitizeText(text) {
-            if (!text) return text;
-            return text.replace(/音范丝/gi, '').replace(/yinfans/gi, '');
-        }
 
         // 显示电影信息
         function displayMovieInfo(movie) {
             // 更新页面标题
-            const movieTitle = sanitizeText(movie.translated || movie.title);
+            const movieTitle = movie.translated || movie.title;
             document.title = `ParseHikari | ${movieTitle}`;
             
             // 更新电影标题
@@ -578,7 +573,7 @@
             // 更新电影简介
             const movieSynopsis = document.querySelector('.movie-synopsis p');
             if (movieSynopsis) {
-                let desc = (sanitizeText(movie.description) || '').trim();
+                let desc = (movie.description || '').trim();
                 // 某些数据只有“简介”等占位，视为无内容
                 if (desc && /^简\s*介$/i.test(desc)) {
                     desc = '';

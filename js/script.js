@@ -26,12 +26,6 @@ function init3DCards() {
     });
 }
 
-// 移除不允许展示的词汇
-function sanitizeText(text) {
-    if (!text) return text;
-    return text.replace(/音范丝/gi, '').replace(/yinfans/gi, '');
-}
-
 // 从本地JSON文件获取电影数据并显示
 async function fetchYinfansContent(containerId = 'yinfans-content') {
     const container = document.getElementById(containerId);
@@ -46,7 +40,7 @@ async function fetchYinfansContent(containerId = 'yinfans-content') {
             
             // 渲染本地四部电影（带标签）
             localMovies.forEach((lm, idx) => {
-                const movieTitle = sanitizeText(lm['译名'] || lm['片名'] || '未知片名');
+                const movieTitle = lm['译名'] || lm['片名'] || '未知片名';
                 const link = `movie-detail.html?local=${idx}`;
                 const imgUrl = lm.poster || 'https://via.placeholder.com/220x330?text=No+Poster';
 
