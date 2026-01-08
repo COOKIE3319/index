@@ -251,8 +251,46 @@
             border-color: #f472b6;
         }
         
+        .resource-tag {
+            cursor: pointer;
+            position: relative;
+        }
+        
         .resource-tag:hover {
             transform: translateY(-1px);
+        }
+        
+        /* Tooltip 样式 */
+        .tooltip {
+            position: fixed;
+            display: none;
+            background: rgba(10, 10, 12, 0.95);
+            color: var(--primary);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            font-size: 13px;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 400;
+            white-space: nowrap;
+            z-index: 10000;
+            box-shadow: 0 8px 32px rgba(0, 240, 255, 0.2),
+                        0 0 20px rgba(0, 240, 255, 0.1);
+            animation: tooltipFadeIn 0.2s ease-out;
+            max-width: 300px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        
+        @keyframes tooltipFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .resource-tag-type {
@@ -604,6 +642,45 @@
             }        }
         
         // 解析磁力链接name字段，提取所有标签
+        // Tag说明字典
+        const TAG_EXPLANATIONS = {
+            '4K': '4K超高清分辨率（3840×2160）',
+            '2160P': '2160P超高清分辨率，等同于4K',
+            '1080P': '1080P高清分辨率（1920×1080）',
+            '720P': '720P标清分辨率（1280×720）',
+            'REMUX': '无损重新封装，保留原始视频和音频流',
+            '蓝光原盘': '从蓝光光盘直接提取的内容',
+            '原盘': '原始光盘内容，未经压缩处理',
+            'WEB-DL': '从流媒体服务直接下载的内容',
+            'WEB-4K': '从网络流媒体下载的4K内容',
+            'WEB-1080': '从网络流媒体下载的1080P内容',
+            'WEB-720': '从网络流媒体下载的720P内容',
+            'BLURAY': '蓝光光盘源文件',
+            'BLU-RAY': '蓝光光盘源文件',
+            'BDRIP': '从蓝光光盘转码的压缩版本',
+            'BRRIP': '蓝光转码，质量介于BDRIP和BLURAY之间',
+            'HDRIP': '从HDTV源转码的内容',
+            'DVDRIP': '从DVD光盘转码的内容',
+            'HDR10': 'HDR10高动态范围显示格式',
+            'HDR10+': 'HDR10+动态元数据版本，提供更好的显示效果',
+            'HDR': '高动态范围内容，提供更好的色彩和亮度范围',
+            'DV': '杜比视界，高级HDR显示格式',
+            'DOVI': '杜比视界的简写形式',
+            'DOLBY VISION': '杜比视界，提供专业级的HDR效果',
+            'HEVC': '高效视频编码（H.265），提供更好的压缩效率',
+            'H.265': '高效视频编码，现代编码标准',
+            'H.264': '当前主流视频编码标准',
+            'X265': 'HEVC编码器的开源实现',
+            'X264': 'H.264编码器的开源实现',
+            'AVC': 'H.264的另一个名称',
+            'ATMOS': '杜比全景声，沉浸式环绕声格式',
+            'TRUEHD': '杜比TrueHD无损音频',
+            'DTS-HD': 'DTS高清无损音频',
+            'DDP5.1': '杜比数字Plus 5.1声道',
+            'AAC': '高级音频编码，常见的音频压缩格式',
+            'AC3': '杜比数字，常见的多声道音频格式'
+        };
+
         function parseMagnetName(name) {
             if (!name) return { tags: [], filename: '' };
             
@@ -724,6 +801,17 @@
                     const tagSpan = document.createElement('span');
                     tagSpan.className = `resource-tag ${tag.type}`;
                     tagSpan.textContent = tag.text;
+                    tagSpan.dataset.tagName = tag.text;
+                    
+                    // 添加鼠标悬停事件
+                    tagSpan.addEventListener('mouseenter', (e) => {
+                        showTagTooltip(tagSpan);
+                    });
+                    
+                    tagSpan.addEventListener('mouseleave', (e) => {
+                        hideTagTooltip();
+                    });
+                    
                     tagsDiv.appendChild(tagSpan);
                 });
                 
@@ -750,6 +838,49 @@
             
             // 添加筛选按钮事件监听
             setupFilterButtons();
+        }
+
+        // 显示Tag提示框
+        function showTagTooltip(tagElement) {
+            // 移除现有的tooltip
+            const existingTooltip = document.querySelector('.tooltip');
+            if (existingTooltip) {
+                existingTooltip.remove();
+            }
+
+            const tagName = tagElement.dataset.tagName;
+            const explanation = TAG_EXPLANATIONS[tagName] || TAG_EXPLANATIONS[tagName.toUpperCase()] || '暂无说明';
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = explanation;
+            document.body.appendChild(tooltip);
+
+            // 获取tag元素的位置
+            const rect = tagElement.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+
+            // 计算tooltip位置（在tag下方，居中）
+            let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+            let top = rect.bottom + 10;
+
+            // 边界检查
+            if (left < 10) left = 10;
+            if (left + tooltipRect.width > window.innerWidth - 10) {
+                left = window.innerWidth - tooltipRect.width - 10;
+            }
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.style.display = 'block';
+        }
+        
+        // 隐藏Tag提示框
+        function hideTagTooltip() {
+            const tooltip = document.querySelector('.tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
         }
         
         // 设置筛选按钮功能
